@@ -9,6 +9,7 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
+import java.io.FileInputStream
 
 class FaceEmbeddingGenerator(context: Context) {
     private var interpreter: Interpreter? = null
@@ -16,7 +17,7 @@ class FaceEmbeddingGenerator(context: Context) {
     init {
         try {
             val assetFileDescriptor = context.assets.openFd("mobile_facenet.tflite")
-            val inputStream = assetFileDescriptor.createInputStream()
+            val inputStream = FileInputStream(assetFileDescriptor.fileDescriptor)
             val fileChannel = inputStream.channel
             val startOffset = assetFileDescriptor.startOffset
             val declaredLength = assetFileDescriptor.declaredLength

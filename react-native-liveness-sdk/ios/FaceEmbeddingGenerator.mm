@@ -1,5 +1,5 @@
 #import "FaceEmbeddingGenerator.h"
-#import <TensorFlowLiteSwift/TensorFlowLiteSwift-Swift.h>
+#import <TensorFlowLiteObjC/TFLTensorFlowLite.h>
 #import <Accelerate/Accelerate.h>
 
 @implementation FaceEmbeddingGenerator {

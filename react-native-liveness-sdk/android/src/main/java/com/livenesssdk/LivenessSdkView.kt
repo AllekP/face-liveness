@@ -1,6 +1,7 @@
 package com.livenesssdk
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -25,6 +26,8 @@ import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.io.File
+import java.io.FileOutputStream
 
 class LivenessSdkView(context: Context) : FrameLayout(context) {
 
@@ -113,9 +116,7 @@ class LivenessSdkView(context: Context) : FrameLayout(context) {
             val face = faces[0]
             // Capture bitmap if we need it for embedding later (e.g. on last step)
             if (currentActionIndex == actions.size - 1) {
-                post {
-                    lastResultBitmap = previewView.bitmap
-                }
+                lastResultBitmap = previewView.bitmap
             }
             checkLiveness(face)
           }
@@ -146,8 +147,10 @@ class LivenessSdkView(context: Context) : FrameLayout(context) {
     if (actionVerified) {
       if (currentActionIndex >= actions.size - 1) {
         isCompleted = true
-        val imageUri = lastResultBitmap?.let { saveBitmap(it) }
-        val embedding = lastResultBitmap?.let { embeddingGenerator.generateEmbedding(it) }
+        // Ensure we have the latest bitmap for the completion event
+        val bitmap = previewView.bitmap ?: lastResultBitmap
+        val imageUri = bitmap?.let { saveBitmap(it) }
+        val embedding = bitmap?.let { embeddingGenerator.generateEmbedding(it) }
         emitEvent("completed", null, embedding, imageUri)
       } else {
         currentActionIndex++
@@ -170,8 +173,8 @@ class LivenessSdkView(context: Context) : FrameLayout(context) {
 
   private fun saveBitmap(bitmap: Bitmap): String? {
     return try {
-        val file = java.io.File(context.cacheDir, "liveness_${System.currentTimeMillis()}.jpg")
-        val out = java.io.FileOutputStream(file)
+        val file = File(context.cacheDir, "liveness_${System.currentTimeMillis()}.jpg")
+        val out = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
         out.flush()
         out.close()
